@@ -1,0 +1,40 @@
+{% extends 'users/base.html' %}
+
+{% block content %}
+<div class="d-flex justify-content-center align-items-center vh-100">
+  <form class="w-50" method="POST" novalidate>
+    {% csrf_token %}
+
+    <!-- Email input -->
+    <div class="mb-4">
+      <label class="form-label">Username</label>
+      <input type="text"  class="form-control" />
+    </div>
+
+    <!-- Password input -->
+    <div class="mb-4">
+      <label class="form-label">Password</label>
+      <input type="password" class="form-control" />
+    </div>
+
+    <div class="row mb-4">
+      <div class="col">
+        <!-- Simple link -->
+        <a href="{% url 'signup' %}">Create account?</a>
+      </div>
+    </div>
+
+    <!-- 2 column grid layout for inline styling -->
+    <div class="row mb-4">
+      <div class="col">
+        <!-- Simple link -->
+        <a href="#!">Forgot password?</a>
+      </div>
+    </div>
+
+    <!-- Submit button -->
+    <input type="submit" class="btn btn-primary btn-block mb-4" value="Login"/>
+  </form>
+</div>
+{% endblock content %}
+

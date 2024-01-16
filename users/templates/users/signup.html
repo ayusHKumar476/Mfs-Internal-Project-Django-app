@@ -1,0 +1,53 @@
+{% extends 'users/base.html' %}
+
+{% block content %}
+<div class="d-flex justify-content-center align-items-center vh-100">
+  <form class="w-50" method="POST">
+    {% csrf_token %}
+
+    <!-- Display form errors -->
+    {% if form.errors %}
+    <div class="alert alert-danger">
+      <strong>Error:</strong> Please correct the following errors.
+      <ul>
+        {% for field, errors in form.errors.items %}
+        {% for error in errors %}
+        <li>{{ field|capfirst }}: {{ error }}</li>
+        {% endfor %}
+        {% endfor %}
+      </ul>
+    </div>
+    {% endif %}
+
+    <div class="mb-4">
+      <label class="form-label" for="id_username">Username</label>
+      <input type="text" name="username" id="id_username" class="form-control" />
+    </div>
+
+    <div class="mb-4">
+      <label class="form-label" for="id_email">Email</label>
+      <input type="email" name="email" id="id_email" class="form-control" />
+    </div>
+
+    <div class="mb-4">
+      <label class="form-label" for="id_password1">Password</label>
+      <input type="password" name="password1" id="id_password1" class="form-control" />
+    </div>
+
+    <div class="mb-4">
+      <label class="form-label" for="id_password2">Re-type Password</label>
+      <input type="password" name="password2" id="id_password2" class="form-control" />
+    </div>
+
+    <div class="row mb-4">
+      <div class="col">
+        <!-- Simple link -->
+        <a href="{% url 'login' %}">Already have an account?</a>
+      </div>
+    </div>
+
+    <input type="submit" class="btn btn-primary btn-block mb-4" id="submitButton" value="Verify OTP">
+  </form>
+</div>
+
+{% endblock content %}

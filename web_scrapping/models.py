@@ -4,8 +4,8 @@ from django.contrib.auth.models import User
 
 class UserProfile(models.Model):
 	user = models.OneToOneField(User, on_delete=models.CASCADE)
-	first_name = models.TextField(max_length=30)
-	last_name = models.TextField(max_length=30)
+	username = models.CharField(max_length=30, unique=True, db_index=True)
+	email = models.EmailField(unique=True)
 	is_superuser = models.BooleanField(default=False)
 	otp = models.CharField(max_length=4, null=True, blank=True)
 

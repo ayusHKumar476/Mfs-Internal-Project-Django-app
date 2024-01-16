@@ -1,0 +1,53 @@
+{% extends 'users/base.html' %}
+
+{% block content %}
+<div class="d-flex justify-content-center align-items-center vh-100">
+    <form class="w-50" method="POST">
+        {% csrf_token %}
+
+        <!-- Display form errors -->
+        {% if form.errors %}
+        <div class="alert alert-danger">
+            <strong>Error:</strong> Please correct the following errors.
+            <ul>
+                {% for field, errors in form.errors.items %}
+                {% for error in errors %}
+                <li>{{ field|capfirst }}: {{ error }}</li>
+                {% endfor %}
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+
+        <!-- Display success messages -->
+        {% if messages %}
+        <ul class="messages">
+            {% for message in messages %}
+            <li {% if message.tags %}class="{{ message.tags }}" {% endif %}>{{ message }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+
+        <div class="mb-4">
+            <label class="form-label" for="id_username">Username</label>{{ username }}
+            <input type="text" name="username" id="id_username" class="form-control" value="{{ username }}"
+                 />
+        </div>
+
+        <div class="mb-4">
+            <label class="form-label" for="id_otp">OTP</label>
+            <input type="text" name="otp" id="id_otp" class="form-control" />
+        </div>
+
+        <div class="row mb-4">
+            <div class="col">
+                <!-- Simple link -->
+                <a href="{% url 'signup' %}">Go Back</a>
+            </div>
+        </div>
+
+        <input type="submit" class="btn btn-primary btn-block mb-4" id="submitButton" value="Register">
+    </form>
+</div>
+
+{% endblock content %}

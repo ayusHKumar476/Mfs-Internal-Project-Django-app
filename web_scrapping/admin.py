@@ -1,7 +1,6 @@
 from django.contrib import admin
-from .models import *
+from .models import Store, ScrapedData
 # Register your models here.
 
-admin.site.register(UserProfile)
 admin.site.register(Store)
 admin.site.register(ScrapedData)
