@@ -4,7 +4,6 @@ from django.contrib import messages
 from .forms import CustomUserCreationForm, LoginForm, VerifyOTPForm
 from .Utility_functions.handle_otp_verfication import verify_otp_via_mail
 from django.contrib.auth.models import User
-from django.urls import reverse
 
 
 # signup page
@@ -18,7 +17,7 @@ def user_signup(request):
             'email': request.POST.get('email'),
             'password1': request.POST.get('password1'),
             'password2': request.POST.get('password2'),
-            'is_active': 0
+            'is_active': False
         }
 
         form = CustomUserCreationForm(form_data)
@@ -28,14 +27,20 @@ def user_signup(request):
             # Save the form to create the user
             user_instance = form.save()
             form_data['user_instance'] = user_instance
-            verify_otp_via_mail(
-                user_object=form_data
-            )
 
-            return redirect('verify_otp')
+            try:
+                verify_otp_via_mail(user_object=form_data)
+                request.session['signup_username'] = form_data['username']
+
+                return redirect('verify_otp')
+
+            except Exception as e:
+                messages.error(request, f"Something went wrong: {str(e)}")
+                return render(request, 'users/signup.html', {'form': form})
 
         else:
             print("form is invalid")
+            messages.error(request, 'Form is not valid. Please check the errors.')
             return render(request, 'users/signup.html', {'form': form})
 
     else:
@@ -44,6 +49,8 @@ def user_signup(request):
 
 
 def validate_otp(request):
+    signup_username = request.session.get('signup_username')
+    
     if request.method == "POST":
         messages.success(request, "Hi! Please check your email for an OTP")
 
@@ -51,40 +58,56 @@ def validate_otp(request):
             user_obj = User.objects.get(username=request.POST.get("username"))
         except User.DoesNotExist:
             messages.error(request, "User not found.")
-            return render(request, 'users/verify_otp.html', {'form': form})
+            return render(request, 'users/verify_otp.html', {'form': form, 'username': signup_username})
 
         form = VerifyOTPForm(request.POST)
         if user_obj.userprofile.otp != request.POST.get('otp'):
             messages.error(request, "OTP didn't match!")
-            return render(request, 'users/verify_otp.html', {'form': form})
+            return render(request, 'users/verify_otp.html', {'form': form, 'username': signup_username})
         
         else:
-
-            user_obj.is_active = 1
+            user_obj.is_active = True
             user_obj.save()
-
             messages.success(request, "Registration successful!")
             return redirect('login')
 
     else:
         form = VerifyOTPForm()
-    return render(request, 'users/verify_otp.html', {'form': form})
+
+    request.session.pop('signup_username', None)
+    return render(request, 'users/verify_otp.html', {'form': form, 'username': signup_username})
+
         
 
 
 # login page
 def user_login(request):
     if request.method == 'POST':
-        form = LoginForm(request.POST)
+        
+        username = request.POST.get("username")
+        password = request.POST.get("password")
+
+        form_data = {
+            "username": username,
+            "password": password
+        }
+
+        form = LoginForm(form_data)
+        
+        print(form_data)
+
         if form.is_valid():
-            username = form.cleaned_data['username']
-            password = form.cleaned_data['password']
-            user = authenticate(request, username=username, password=password)
-            if user:
-                login(request, user)
-                return redirect('login')
+            print("form is valid")
+            # Access the authenticated user from the form
+            user = form.user
+            login(request, user)
+            return redirect('web_scrapping:avialable_websites')
+        
+        print("form is in valid")
+
     else:
         form = LoginForm()
+
     return render(request, 'users/login.html', {'form': form})
 
 

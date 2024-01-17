@@ -3,6 +3,7 @@
 {% block content %}
 <div class="d-flex justify-content-center align-items-center vh-100">
     <form class="w-50" method="POST">
+        <h1 class="display-4">Basic Verify-OTP Page</h1>
         {% csrf_token %}
 
         <!-- Display form errors -->
@@ -30,8 +31,13 @@
 
         <div class="mb-4">
             <label class="form-label" for="id_username">Username</label>
-            <input type="text" name="username" id="id_username" class="form-control" />
+            {% if username %}
+                <input type="text" name="username" id="id_username" class="form-control" value="{{ username }}" readonly />
+            {% else %}
+                <input type="text" name="username" id="id_username" class="form-control" value="Not found" readonly />
+            {% endif %}
         </div>
+        
 
         <div class="mb-4">
             <label class="form-label" for="id_otp">OTP</label>

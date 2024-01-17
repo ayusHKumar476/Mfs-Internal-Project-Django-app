@@ -10,7 +10,7 @@ class UserProfile(models.Model):
 	otp = models.CharField(max_length=4, null=True, blank=True)
 
 	def __str__(self):
-		return self.user
+		return self.user.username
 
 
 class Store(models.Model):

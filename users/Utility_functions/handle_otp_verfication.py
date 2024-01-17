@@ -1,6 +1,5 @@
 from web_scrapping.models import UserProfile
 
-from django.contrib.auth.models import User
 import random
 from django.conf import settings
 from django.core.mail import send_mail
@@ -17,10 +16,14 @@ def create_user_profile(user_object, otp):
 		'user': user_object["user_instance"],
 	}
 
-	user = UserProfile(**user_data)
-	user.full_clean()
-	user.save()
-	print("user created successfully")
+	try:
+		user = UserProfile(**user_data)
+		user.full_clean()
+		user.save()
+		print("user created successfully")	
+
+	except Exception as e:
+		return str(e)
 
 
 def verify_otp(user_object):
@@ -33,7 +36,10 @@ def verify_otp(user_object):
 		return
 
 	# Create UserProfile with OTP
-	create_user_profile(user_object, otp)
+	try:
+		create_user_profile(user_object, otp)
+	except Exception as e:
+		return str(e)
 
 	# Retrieve UserProfile
 	user_profile = get_object_or_404(UserProfile, username=username)

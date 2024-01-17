@@ -3,18 +3,48 @@
 {% block content %}
 <div class="d-flex justify-content-center align-items-center vh-100">
   <form class="w-50" method="POST" novalidate>
+    <h1 class="display-4">Basic Login Page</h1>
     {% csrf_token %}
+
+    <!-- Display form errors -->
+    {% if form.errors %}
+    <div class="alert alert-danger">
+      <strong>Error:</strong> Please correct the following errors.
+      <ul>
+        {% for field, errors in form.errors.items %}
+        {% if field == '__all__' %}
+        <li>{{ errors }}</li>
+        {% else %}
+        {% for error in errors %}
+        <li>{{ field|capfirst }}: {{ error }}</li>
+        {% endfor %}
+        {% endif %}
+        {% endfor %}
+      </ul>
+    </div>
+    {% endif %}
+
+
+
+    <!-- Display success messages -->
+    {% if messages %}
+    <ul class="messages">
+      {% for message in messages %}
+      <li {% if message.tags %}class="{{ message.tags }}" {% endif %}>{{ message }}</li>
+      {% endfor %}
+    </ul>
+    {% endif %}
 
     <!-- Email input -->
     <div class="mb-4">
       <label class="form-label">Username</label>
-      <input type="text"  class="form-control" />
+      <input type="text" class="form-control" name="username" />
     </div>
 
     <!-- Password input -->
     <div class="mb-4">
       <label class="form-label">Password</label>
-      <input type="password" class="form-control" />
+      <input type="password" class="form-control" name="password" />
     </div>
 
     <div class="row mb-4">
@@ -33,8 +63,7 @@
     </div>
 
     <!-- Submit button -->
-    <input type="submit" class="btn btn-primary btn-block mb-4" value="Login"/>
+    <input type="submit" class="btn btn-primary btn-block mb-4" value="Login" />
   </form>
 </div>
 {% endblock content %}
-
