@@ -13,10 +13,7 @@
         }
     </style>
 
-    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
     <script type="text/javascript" charset="utf8" src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-    <script type="text/javascript" charset="utf8"
-        src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
 
 </head>
 
@@ -25,11 +22,12 @@
         <div class="container-fluid">
             <div class="collapse navbar-collapse justify-content-end" id="navbarText">
                 {% if user.is_authenticated %}
-                <span class="navbar-text">
+                <span class="navbar-text" style="margin-right: 12px;">
                     Hello {{ user.username }}
                 </span>
+                <a href="/users/logout/" class="btn btn-primary">Log Out</a>
                 {% else %}
-                <span class="navbar-text">
+                <span class="navbar-text" style="margin-right: 12px;">
                     Hello user
                 </span>
                 {% endif %}

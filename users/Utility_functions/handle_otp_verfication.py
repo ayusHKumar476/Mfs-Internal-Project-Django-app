@@ -42,6 +42,15 @@ def create_user_profile(user_object, otp):
 		}
 
 
+def send_otp_via_email(otp, email):
+	# Send OTP via email
+	subject = "Here is your OTP"
+	message = f"Your OTP for verification is -> {otp}"
+	email_from = settings.EMAIL_HOST
+	send_mail(subject, message, email_from, [email])
+	print("OTP SENT FOR VERIFICATION")
+
+
 def verify_otp(user_object):
 	otp = random.randint(1000, 9999)
 
@@ -61,11 +70,7 @@ def verify_otp(user_object):
 	# Retrieve UserProfile
 	user_profile = get_object_or_404(UserProfile, username=username)
 
-	# Send OTP via email
-	subject = "Here is your OTP"
-	message = f"Your OTP for verification is -> {otp}"
-	email_from = settings.EMAIL_HOST
-	send_mail(subject, message, email_from, [user_profile.email])
+	send_otp_via_email(otp, user_profile.email)
 
 	# Update OTP in UserProfile
 	user_profile.otp = otp
