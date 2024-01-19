@@ -16,8 +16,7 @@ def user_signup(request):
             'username': request.POST.get("username"),
             'email': request.POST.get('email'),
             'password1': request.POST.get('password1'),
-            'password2': request.POST.get('password2'),
-            'is_active': False
+            'password2': request.POST.get('password2')
         }
 
         form = CustomUserCreationForm(form_data)
@@ -29,7 +28,8 @@ def user_signup(request):
             form_data['user_instance'] = user_instance
 
             try:
-                verify_otp_via_mail(user_object=form_data)
+                response = verify_otp_via_mail(user_object=form_data)
+                print(response)
                 request.session['signup_username'] = form_data['username']
 
                 return redirect('verify_otp')

@@ -29,7 +29,7 @@ class Store(models.Model):
 
 class ScrapedData(models.Model):
 	store = models.ForeignKey(Store, on_delete=models.CASCADE)
-	data = models.TextField()
+	data = models.JSONField()
 	timestamp = models.DateTimeField(auto_now_add=True)
 
 	def __str__(self):

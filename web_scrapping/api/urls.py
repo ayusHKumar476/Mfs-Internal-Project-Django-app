@@ -1,29 +1,56 @@
 from web_scrapping.models import ScrapedData, Store
 from .serializers import ScrapedDataSerializer
 from django.http import JsonResponse
+from django.db.models import F
+from django.core.exceptions import ObjectDoesNotExist
 from rest_framework.response import Response
 from rest_framework.generics import ListCreateAPIView
 from rest_framework import status
 import io, csv, pandas as pd
 import json, ast
 
-def get_scrapped_data_details():
-    items = ScrapedData.objects.all()[:50]
-    serializer = ScrapedDataSerializer(items, many=True)
-    response = serializer.data
 
+def get_scrapped_company():
     response_list = []
 
-    for item in response:
-        data_json = ast.literal_eval(item["data"])
+    try:
+        unique_companies = (
+            ScrapedData.objects
+            .filter(data__contains={"company": "Apple"})
+            .values("data__company")
+            .annotate(company_name=F("data__company"))
+            .values("company_name")
+            .distinct()
+        )
 
-        response_list.append({
-            "store_id": item['store'],
-            "store_name": data_json.get('store_name', ''),
-            "store_city": data_json.get('store_city', '')
-        })
+        for data in unique_companies:
+            response_list.append(data)
+
+    except Exception as e:
+        print(f"Something went wrong: {e}")
 
     return response_list
+
+
+def get_scrapped_company_details(company):
+    try:
+        query_set = ScrapedData.objects.filter(
+            data__contains={'company': company}
+        ).values(
+            'data'
+        )[:30]
+
+        return list(query_set)
+
+    except ObjectDoesNotExist:
+        print(f"No data found for: {company}")
+        return []
+
+    except Exception as e:
+        print(f"Something went wrong: {str(e)}")
+        return []
+
+        
 
 
 def create_scrapped_details():
@@ -45,20 +72,18 @@ def create_scrapped_details():
                 state=row["state"],
             )
 
+            row_data = row.to_dict()
+            row_data["company"] = "Apple"
+
             # Create ScrapedData instance
-            scraped_data = ScrapedData.objects.create(
-                store=store,
-                data=row.to_dict(),
-            )
+            scraped_data = ScrapedData.objects.create(store=store, data=row_data)
 
         return Response(
             {"message": "Data created successfully"}, status=status.HTTP_201_CREATED
         )
 
     except Exception as e:
-        return Response(
-            {"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
-        )
+        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 # create_scrapped_details()

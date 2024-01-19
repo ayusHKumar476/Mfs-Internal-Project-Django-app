@@ -21,8 +21,9 @@ class CustomUserCreationForm(UserCreationForm):
 	def email_clean(self):
 		email = self.cleaned_data['email'].lower()
 		new = User.objects.filter(email=email)
+		print("email count: ", new)
 		if new.count():
-			raise ValidationError(" Email Already Exist")
+			raise ValidationError("Email Already Exist")
 		return email
 
 	def clean_password2(self):

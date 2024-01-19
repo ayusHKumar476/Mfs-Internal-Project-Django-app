@@ -5,12 +5,13 @@ from django.conf import settings
 from django.core.mail import send_mail
 from rest_framework.generics import get_object_or_404
 
+from django.core.exceptions import ValidationError
+
 
 def create_user_profile(user_object, otp):
 
 	user_data = {
 		'username': user_object["username"],
-		'is_superuser': False,
 		'otp': otp,
 		'email': user_object["email"],
 		'user': user_object["user_instance"],
@@ -20,10 +21,25 @@ def create_user_profile(user_object, otp):
 		user = UserProfile(**user_data)
 		user.full_clean()
 		user.save()
-		print("user created successfully")	
+		print("user created successfully")
+		return {
+			'message': "user created successfully",
+			'status': 200
+		}
+
+	except ValidationError as ve:
+		print(f"Validation error: {ve}")
+		return {
+			'message': f'Validation error: {ve}',
+			'status': 400
+		}
 
 	except Exception as e:
-		return str(e)
+		print(f"Something went wrong while creating userProfile: {str(e)}")
+		return {
+			'message' : f'issue - {str(e)}',
+			'status' : 400
+		}
 
 
 def verify_otp(user_object):
@@ -37,7 +53,8 @@ def verify_otp(user_object):
 
 	# Create UserProfile with OTP
 	try:
-		create_user_profile(user_object, otp)
+		response = create_user_profile(user_object, otp)
+		print(response)
 	except Exception as e:
 		return str(e)
 

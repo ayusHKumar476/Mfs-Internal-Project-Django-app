@@ -1,34 +1,163 @@
 {% extends 'web_scrapping/base.html' %}
 
 {% block content %}
-<div class="d-flex justify-content-center align-items-center vh-100">
-    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.1.0/css/all.css"
-        integrity="sha384-lKuwvrZot6UHsBSfcMvOkWwlCMgc0TaWr+30HWe3a4ltaBwTZhyTEggF5tJv8tbt" crossorigin="anonymous">
-    <div class="container" style="margin-top: -400px;">
-        <br />
-        <div class="row justify-content-center">
-            <div class="col-12 col-md-10 col-lg-8">
-                <form class="card card-sm">
-                    <div class="card-body row no-gutters align-items-center">
-                        <div class="col-auto">
-                            <i class="fas fa-search h4 text-body"></i>
-                        </div>
-                        <!--end of col-->
-                        <div class="col">
-                            <input class="form-control form-control-lg form-control-borderless" type="search"
-                                placeholder="Search available websites">
-                        </div>
-                        <!--end of col-->
-                        <div class="col-auto">
-                            <button class="btn btn-lg btn-success" type="submit">Search</button>
-                        </div>
-                        <!--end of col-->
+
+<div class="d-flex justify-content-center align-items-start">
+    <div class="container d-flex flex-column align-items-center justify-content-center">
+        <form method="GET" class="py-5">
+            {% csrf_token %}
+            <div class="d-flex justify-content-center align-items-start gap-4">
+                <label for="available-websites" class="mb-2">
+                </label>
+                <div class="d-flex">
+                    <div class="dropdown-center">
+                        <button type="button" id="company-name" class="btn btn-lg btn-primary dropdown-toggle"
+                            data-bs-toggle="dropdown" data-bs-display="static" aria-expanded="false">
+                            Choose from available websites
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-lg-end">
+
+                            {% for data in form %}
+                            <li>
+                                <button class="dropdown-item" type="button" data-company="{{ data.company_name }}">
+                                    {{ data.company_name }}
+                                </button>
+                            </li>
+                            {% endfor %}
+                        </ul>
                     </div>
-                </form>
+
+                </div>
             </div>
-            <!--end of col-->
-        </div>
+        </form>
+
+        <table class="table table-hover" id="store-list">
+            <thead>
+                <tr>
+                    <th scope="col">store_name</th>
+                    <th scope="col">store_address</th>
+                    <th scope="col">phone_number</th>
+                    <th scope="col">zip_code</th>
+                    <th scope="col">latitude</th>
+                    <th scope="col">longitude</th>
+                    <th scope="col">city_name</th>
+                    <th scope="col">state</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- <div class="pagination">
+            <span class="step-links">
+                {% if data_obj.has_previous %}
+                <a href="?page={{ data_obj.previous_page_number }}">&laquo; first</a>
+                <a href="?page={{ data_obj.previous_page_number }}">&lsaquo; previous</a>
+                {% endif %}
+
+                <span class="current-page">
+                    Page {{ data_obj.number }} of {{ data_obj.paginator.num_pages }}.
+                </span>
+
+                {% if data_obj.has_next %}
+                <a href="?page={{ data_obj.has_next }}">next &rsaquo;</a>
+                <a href="?page={{ data_obj.paginator.num_pages }}">last &raquo;</a>
+                {% endif %}
+            </span>
+        </div> -->
+
+        <button type="button" id="send-mail" class="btn btn-primary" disabled>Send data to
+            mail</button>
+
     </div>
 </div>
+
+<script>
+    $(document).ready(function () {
+        // Initial state: Display a prompt
+        $('#store-list tbody').html('<tr><td colspan="8">Select a company from the dropdown to populate data</td></tr>');
+
+        const company = $('.dropdown-item').data('company');
+        $('.dropdown-item').click(function () {
+
+            console.log(company)
+
+            $.ajax({
+                type: 'POST',
+                url: '/avialable_websites/',
+                data: {
+                    csrfmiddlewaretoken: '{{ csrf_token }}',
+                    company: company,
+                    page: 1,
+                },
+                success: function (response) {
+
+                    let companyName = document.getElementById("company-name")
+                    companyName.innerText = company
+
+                    // console.log(response)
+                    if (response["data_obj"]['list'].length > 0) {
+                        // Clear the prompt and display the table
+                        $('#store-list tbody').empty();
+                        for (let item = 0; item < response["data_obj"]['list'].length; item++) {
+                            var data_item = response["data_obj"]['list'][item]['data']
+                            // console.log(data_item)
+                            $('#store-list tbody').append(
+                                '<tr><td>' + data_item.store_name + '</td>' +
+                                '<td>' + data_item.store_address + '</td>' +
+                                '<td>' + data_item.phone_number + '</td>' +
+                                '<td>' + data_item.zip_code + '</td>' +
+                                '<td>' + data_item.latitude + '</td>' +
+                                '<td>' + data_item.longitude + '</td>' +
+                                '<td>' + data_item.city_name + '</td>' +
+                                '<td>' + data_item.state + '</td></tr>'
+                            );
+                        }
+
+                        let submitButton = document.getElementById("send-mail")
+                        submitButton.toggleAttribute("disabled")
+
+                    } else {
+                        // Display a message when no data is present
+                        $('#store-list tbody').html('<tr><td colspan="8">No data present for the selected company</td></tr>');
+                    }
+                },
+                error: function (error) {
+                    alert("Error occured", error)
+                    console.error(error);
+                }
+            });
+        });
+
+        $('#send-mail').click(function () {
+            console.log("function triggered")
+
+            $.ajax({
+                type: 'POST',
+                url: '/send_mail_to_user/',
+                data: {
+                    csrfmiddlewaretoken: '{{ csrf_token }}',
+                    company: company
+                },
+                success: function (response) {
+                    alert(response)
+                    console.log(response)
+                },
+                error: function (error) {
+                    alert("Error occured", error)
+                    console.error(error);
+                }
+            });
+
+        })
+    });
+
+
+</script>
+
 
 {% endblock content %}
