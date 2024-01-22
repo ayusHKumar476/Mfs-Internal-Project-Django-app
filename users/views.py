@@ -1,7 +1,7 @@
 import random
 from django.shortcuts import get_object_or_404, render, redirect
 from django.contrib.auth import authenticate, login, logout
-from django.contrib import messages
+from django.contrib import messages, admin
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import SetPasswordForm
@@ -18,12 +18,19 @@ def user_signup(request):
     if request.method == "POST":
         # Initialize the form with the data
 
-        print("Entering views")
+        admin_role = False
+        if request.POST.get("is_admin") == "on":
+            admin_role = True
+
+        print(request.POST.get("is_admin"))
+
+
         form_data = {
             "username": request.POST.get("username"),
             "email": request.POST.get("email"),
             "password1": request.POST.get("password1"),
             "password2": request.POST.get("password2"),
+            "is_admin": admin_role
         }
 
         form = CustomUserCreationForm(form_data)
@@ -36,7 +43,6 @@ def user_signup(request):
 
             try:
                 response = verify_otp_via_mail(user_object=form_data)
-                print(response)
                 request.session["signup_username"] = form_data["username"]
 
                 return redirect("verify_otp")
@@ -60,8 +66,6 @@ def validate_otp(request):
     signup_username = request.session.get("signup_username")
 
     if request.method == "POST":
-        messages.success(request, "Hi! Please check your email for an OTP")
-
         try:
             user_obj = User.objects.get(username=request.POST.get("username"))
         except User.DoesNotExist:
@@ -240,5 +244,9 @@ def reset_password(request):
             )
 
 
-    # request.session.pop("user", None)
+    request.session.pop("user", None)
     return render(request, "users/reset_password.html")
+
+
+def admin_panel_view(request):
+    return render(request, 'users/admin_panel.html')
