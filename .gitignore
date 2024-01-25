@@ -52,6 +52,8 @@ MANIFEST
 logs
 **/*.backup.*
 **/*.back.*
+package-lock.json
+package.json
 
 node_modules
 bower_components

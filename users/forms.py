@@ -101,6 +101,9 @@ class LoginForm(forms.Form):
         username = cleaned_data.get("username")
         password = cleaned_data.get("password")
 
+        print("username - ", username)
+        print("password - ", password)
+
         # Authenticate the user
         self.user = authenticate(username=username, password=password)
 
