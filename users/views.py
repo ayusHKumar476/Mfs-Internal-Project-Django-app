@@ -157,6 +157,7 @@ def validate_otp(request):
     if request.method == "POST":
         data = json.loads(request.body)
 
+        print(data)
         try:
             user_obj = User.objects.get(username=data["username"])
         except User.DoesNotExist:
@@ -165,6 +166,7 @@ def validate_otp(request):
         VerifyOTPForm(request.POST)
         if user_obj.userprofile.otp != data["otp"]:
             return JsonResponse({"success": False, "message": "OTP didn't match!"})
+        
 
         else:
             user_obj.is_active = True
@@ -220,7 +222,6 @@ def user_login(request):
 
         if form.is_valid():
             print("form is valid")
-            # Access the authenticated user from the form
             user = form.user
             login(request, user)
             return JsonResponse({"message": "Login successful"}, status=200)
@@ -235,9 +236,19 @@ def user_login(request):
 
 
 # logout page
+# def user_logout(request):
+#     logout(request)
+#     return redirect("login")
+
+
+# logout page
+@csrf_exempt
 def user_logout(request):
-    logout(request)
-    return redirect("login")
+    try:
+        logout(request)
+        return JsonResponse({"message": "Logout succesful"}, status=200)
+    except Exception as e:
+        return JsonResponse({"message": f"Error: {e}"}, status=400)
 
 
 # def handle_forgot_password_request(request):
@@ -404,10 +415,12 @@ def reset_password(request):
     if request.method == "POST":
         data = json.loads(request.body)
 
+        print(data)
+
         try:
             form_data = {
-                "new_password1": data["password1"],
-                "new_password2": data["password2"],
+                "new_password1": data["password"],
+                "new_password2": data["confirmPassword"],
             }
 
             user_id = data["user_id"]
@@ -418,21 +431,12 @@ def reset_password(request):
 
             if form.is_valid():
                 print("form is valid")
-                user = form.save()
-                print("user updated")
-                messages.success(request, "Your password was successfully updated!")
-                request.session.pop("user", None)
-                return redirect("login")
+                form.save()
+                return JsonResponse({"message": "Password updated successfully"}, status=200)
 
             else:
                 print(form.errors)
-                messages.error(request, form.errors)
+                return JsonResponse({"message": form.errors}, status=400)
 
         except Exception as e:
-            # Handle exceptions, log them, or customize the error handling as needed
-            messages.error(
-                request, "An error occurred while processing the password reset."
-            )
-
-    request.session.pop("user", None)
-    return render(request, "users/reset_password.html")
+           return JsonResponse({"message": f"Something went wrong: {str(e)}"}, status=400)

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Formik, Field, Form, ErrorMessage } from "formik";
 import { useNavigate } from "react-router-dom";
 import * as Yup from "yup";
+import "./Myform.css";
 
 const ResetPasswordForm = () => {
   const [loading, setLoading] = useState(false);
@@ -23,7 +24,6 @@ const ResetPasswordForm = () => {
 
   const validateUser = async (data) => {
     try {
-      console.log(data);
       setLoading(true);
 
       const response = await fetch(
@@ -48,52 +48,44 @@ const ResetPasswordForm = () => {
         const errorMessages = responseData.message;
         alert(`Validation errors:\n${errorMessages}`);
       } else {
-        console.log("response passed", responseData);
-        alert(responseData.message + "\nPassword changed sucessfully");
+        alert(responseData.message);
+        sessionStorage.clear();
         navigate("/");
       }
     } catch (error) {
-      console.error("Error validating user:", error);
-      alert("An unexpected error occurred. Please try again.");
+      alert(
+        "An unexpected error occurred in validating user. Please try again."
+      );
       setLoading(false);
     }
   };
 
   const onSubmit = async (values, { resetForm }) => {
-    const data = {};
+    try {
+      const user_id = sessionStorage.getItem("user_id");
+      values.user_id = user_id;
+      await validateUser(values);
 
-    if (values.email) {
-      data["email"] = values.email;
-    }
-
-    if (values.username) {
-      data["username"] = values.username;
-    }
-
-    const response = await validateUser(data);
-
-    console.log("response from fgtpwd api: ", response.username);
-
-    console.log(response.status == 200);
-
-    if (response.status == 200) {
-      sessionStorage.setItem("signup_username", response.username);
+    } catch (error) {
+      alert(
+        "An unexpected error occurred in submit function. Please try again."
+      );
     }
     resetForm();
   };
 
   return (
-    <div>
-      <h1>Reset your password</h1>
+    <div className="d-flex justify-content-center height-80vh">
       <Formik
         initialValues={initialValues}
         validationSchema={validationSchema}
         onSubmit={onSubmit}
       >
         {({ isSubmitting }) => (
-          <Form>
+          <Form className="d-flex align-items-center justify-content-center flex-column">
+            <h1>Reset your password</h1>
             <label htmlFor="password">New Password:</label>
-            <Field type="password" id="username" name="username" />
+            <Field type="password" id="password" name="password" />
             <ErrorMessage name="password" component="div" />
 
             <label htmlFor="confirmPassword">Confirm Password:</label>
@@ -104,7 +96,11 @@ const ResetPasswordForm = () => {
             />
             <ErrorMessage name="confirmPassword" component="div" />
 
-            <button type="submit" disabled={isSubmitting}>
+            <button
+              className="btn btn-primary mt-2"
+              type="submit"
+              disabled={isSubmitting}
+            >
               {loading ? <>Loading..</> : <>Submit</>}
             </button>
           </Form>

@@ -3,6 +3,7 @@ import { Formik, Field, Form, ErrorMessage } from "formik";
 import { useNavigate } from "react-router-dom";
 import * as Yup from "yup";
 import Modal from "react-modal";
+import "./Myform.css";
 
 import OtpVerificationModal from "./OtpVerificationModal";
 
@@ -11,21 +12,16 @@ Modal.setAppElement("#root");
 const ForgotPasswordForm = () => {
   const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
+  const [username, setUsername] = useState('');
+
 
   const navigate = useNavigate();
-
-  const openModal = () => {
-    setShowModal(true);
-  };
-
-  const closeModal = () => {
-    setShowModal(false);
-  };
 
   const initialValues = {
     username: "",
     email: "",
   };
+
 
   const validationSchema = Yup.object({
     username: Yup.string(),
@@ -89,15 +85,13 @@ const ForgotPasswordForm = () => {
 
       const responseData = await response.json();
 
-      console.log(responseData.success === false);
-
       if (responseData.success === false) {
         console.log("response failed in verify otp");
         alert(`Validation errors:\n${responseData.message}`);
-        return {'success': false}
+        return { success: false };
       } else {
         alert("OTP matched sucessfully");
-        return {'success': true}
+        return { success: true };
       }
     } catch (error) {
       console.error("Error validating user:", error);
@@ -112,16 +106,15 @@ const ForgotPasswordForm = () => {
 
       const data = {
         otp: otp,
-        username: sessionStorage.getItem("signup_username"),
+        username: sessionStorage.getItem("username"),
       };
 
       const response = await validateOTP(data);
       console.log("response from otp - ", response);
       if (response.success === true) {
-        closeModal();
+        // closeModal();
         navigate("/reset_password");
-      }
-      else{
+      } else {
         navigate("/verify_user");
       }
     } catch (error) {
@@ -146,24 +139,25 @@ const ForgotPasswordForm = () => {
     // console.log("response from fgtpwd api: ", response.username);
     // console.log(response.status == 200);
     if (response.status === 200) {
-      sessionStorage.setItem("signup_username", response.username);
+      setUsername(response.username);
+      sessionStorage.setItem("username", response.username);
       sessionStorage.setItem("user_id", response.user_id);
-      openModal();
+      setShowModal(true);
     }
 
     resetForm();
   };
 
   return (
-    <div>
-      <h1>Verify yourself before proceeding</h1>
+    <div className="d-flex justify-content-center height-80vh">
       <Formik
         initialValues={initialValues}
         validationSchema={validationSchema}
         onSubmit={onSubmit}
       >
         {({ isSubmitting, values }) => (
-          <Form>
+          <Form className="d-flex align-items-center justify-content-center flex-column">
+            <h1>Verify yourself before proceeding</h1>
             <label htmlFor="username">Username:</label>
             <Field
               type="text"
@@ -189,7 +183,7 @@ const ForgotPasswordForm = () => {
               </label>
             </div>
 
-            <button
+            <button className="btn btn-primary"
               type="submit"
               disabled={
                 isSubmitting || (values.username === "" && values.email === "")
@@ -200,8 +194,9 @@ const ForgotPasswordForm = () => {
 
             <OtpVerificationModal
               isOpen={showModal}
-              onClose={closeModal}
+              onClose={() => setShowModal(false)}
               onOtpSubmit={handleOtpSubmit}
+              username={username}
             />
           </Form>
         )}

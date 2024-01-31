@@ -5,23 +5,16 @@ import * as Yup from "yup";
 import Modal from "react-modal";
 
 import OtpVerificationModal from "./OtpVerificationModal";
-import "./SignUpForm.css";
+import "./Myform.css";
 
 Modal.setAppElement("#root");
 
 const SignUpForm = () => {
   const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
+  const [username, setUsername] = useState('');
 
-  const navigate = useNavigate()
-
-  const openModal = () => {
-    setShowModal(true);
-  };
-
-  const closeModal = () => {
-    setShowModal(false);
-  };
+  const navigate = useNavigate();
 
   const initialValues = {
     username: "",
@@ -64,15 +57,13 @@ const SignUpForm = () => {
       const responseData = await response.json();
       setLoading(false);
 
-      console.log(responseData);
-
       if (!response.ok) {
         const errorMessages = Object.values(responseData.message).join("\n");
         alert(`Validation errors:\n${errorMessages}`);
       } else {
-        sessionStorage.setItem("signup_username", data.username);
+        sessionStorage.setItem("isAuthenticated", true);
+        setUsername(data.username);
         alert("OTP sent successfully");
-        openModal();
       }
     } catch (error) {
       console.error("Error validating user:", error);
@@ -81,13 +72,53 @@ const SignUpForm = () => {
     }
   };
 
+  const validateOTP = async (data) => {
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_BASE_URL}/users/verify_otp/`,
+        {
+          method: "POST",
+          credentials: "same-origin",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(data),
+        }
+      );
+
+      const responseData = await response.json();
+
+      if (responseData.success === false) {
+        console.log("response failed in verify otp");
+        alert(`Validation errors:\n${responseData.message}`);
+        return { success: false };
+      } else {
+        alert("OTP matched sucessfully");
+        return { success: true };
+      }
+    } catch (error) {
+      console.error("Error validating user:", error);
+
+      alert("An unexpected error occurred. Please try again.");
+    }
+  };
+
   const handleOtpSubmit = async (otp) => {
     try {
       console.log("OTP submitted:", otp);
-      
-      alert("Email verification successful!");
-      navigate("/available_websites")
-      closeModal();
+
+      const data = {
+        otp: otp,
+        username: sessionStorage.getItem("username"),
+      }
+
+      const response = await validateOTP(data);
+      if (response.success === true) {
+        navigate("/available_websites");
+        setShowModal(false);
+        
+      }
+
     } catch (error) {
       console.error("Error handling OTP submission:", error);
       alert("An unexpected error occurred. Please try again.");
@@ -103,23 +134,25 @@ const SignUpForm = () => {
       email: values.email,
       isAdmin: values.isAdmin,
     };
-    
+
     await validateUser(data);
-    openModal();
+    setShowModal(true);
 
     resetForm();
   };
 
   return (
-    <div>
-      <h1>Sign Up</h1>
+    <div className="d-flex justify-content-center height-80vh">
       <Formik
         initialValues={initialValues}
         validationSchema={validationSchema}
         onSubmit={onSubmit}
       >
         {({ isSubmitting }) => (
-          <Form>
+          <Form className="d-flex align-items-center justify-content-center flex-column">
+            <h1>Sign Up</h1>
+
+            {/* <div className="border rounded p-4"> */}
             <label htmlFor="username">Username:</label>
             <Field type="text" id="username" name="username" />
             <ErrorMessage name="username" component="div" />
@@ -153,15 +186,21 @@ const SignUpForm = () => {
                 </Link>
               </p>
             </div>
-            <button type="submit" disabled={isSubmitting}>
+            <button
+              type="submit"
+              className="btn btn-primary"
+              disabled={isSubmitting}
+            >
               {loading ? <>Loading..</> : <>Submit</>}
             </button>
 
             <OtpVerificationModal
               isOpen={showModal}
-              onClose={closeModal}
+              onClose={() => setShowModal(false)}
               onOtpSubmit={handleOtpSubmit}
+              username={username}
             />
+            {/* </div> */}
           </Form>
         )}
       </Formik>
